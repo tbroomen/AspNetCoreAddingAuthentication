@@ -31,19 +31,19 @@ namespace WishList.Controllers
 
         [HttpPost]
         [AllowAnonymous]
-        public IActionResult Register(RegisterViewModel registerViewModel) 
+        public async Task<IActionResult> Register([FromBody] RegisterViewModel registerViewModel) 
         {
             if(!ModelState.IsValid) 
             {
                 return View(registerViewModel);
             }
 
-            var result = _userManager.CreateAsync(new ApplicationUser() 
+            var result = await _userManager.CreateAsync(new ApplicationUser() 
                 { UserName = registerViewModel.Email, Email = registerViewModel.Email }, registerViewModel.Password);
 
-            if(!result.Result.Succeeded)
+            if(!result.Succeeded)
             {
-                foreach(var error in result.Result.Errors)
+                foreach(var error in result.Errors)
                 {
                     ModelState.AddModelError("Password",error.Description);
                 }
@@ -52,6 +52,42 @@ namespace WishList.Controllers
             }
 
             return RedirectToAction("Index","Home");
+        }
+
+        [HttpGet]
+        [AllowAnonymous]
+        public IActionResult Login()
+        {
+            return View();
+        }
+
+        [HttpPost]
+        [AllowAnonymous]
+        [ValidateAntiForgeryToken]
+        public async  Task<IActionResult> Login([FromBody] LoginViewModel loginViewModel)
+        {
+            if (!ModelState.IsValid)
+            {
+                return View(loginViewModel);
+            }
+
+            var result = await _signInManager.GetExternalLoginInfoAsync(loginViewModel,,false,false);
+
+            if(!result.Succeeded)
+            {
+                ModelState.AddModelError(String.Empty, "Invalid login attempt.");
+            }
+
+            return RedirectToAction("Index", "Item");
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Logout()
+        {
+            await _signInManager.SignOutAsync();
+
+            return RedirectToAction("Index", "Home");
         }
     }
 }
