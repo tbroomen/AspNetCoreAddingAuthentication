@@ -31,15 +31,15 @@ namespace WishList.Controllers
 
         [HttpPost]
         [AllowAnonymous]
-        public async Task<IActionResult> Register([FromBody] RegisterViewModel registerViewModel) 
+        public IActionResult Register([FromBody] RegisterViewModel registerViewModel) 
         {
             if(!ModelState.IsValid) 
             {
                 return View(registerViewModel);
             }
 
-            var result = await _userManager.CreateAsync(new ApplicationUser() 
-                { UserName = registerViewModel.Email, Email = registerViewModel.Email }, registerViewModel.Password);
+            var result = _userManager.CreateAsync(new ApplicationUser() 
+                { UserName = registerViewModel.Email, Email = registerViewModel.Email }, registerViewModel.Password).Result;
 
             if(!result.Succeeded)
             {
@@ -64,14 +64,14 @@ namespace WishList.Controllers
         [HttpPost]
         [AllowAnonymous]
         [ValidateAntiForgeryToken]
-        public async  Task<IActionResult> Login([FromBody] LoginViewModel loginViewModel)
+        public IActionResult Login([FromBody] LoginViewModel loginViewModel)
         {
             if (!ModelState.IsValid)
             {
                 return View(loginViewModel);
             }
 
-            var result = await _signInManager.GetExternalLoginInfoAsync(loginViewModel,,false,false);
+            var result = _signInManager.PasswordSignInAsync(loginViewModel.Email,loginViewModel.Password,false,false).Result;
 
             if(!result.Succeeded)
             {
